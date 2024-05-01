@@ -11,28 +11,28 @@ from twisted.web.server import NOT_DONE_YET
 
 class Simple(resource.Resource):
     isLeaf = True
-    
-    def render_GET(self, request):
-        def _doRender():
-            try:
-                self.doRender(request)
-            except:
-                return ''
-            finally:
-                if not request._disconnected:
-                    request.finish()
 
-        deferToThreadPool(reactor, reactor.getThreadPool(), _doRender)
+    def render_GET(self, request):
+        try:
+            self.doRender(request)
+        except Exception as e:
+            print('Error while rendering:', e)
+            request.write(bytes(f"<html><body>Error: {e}</body></html>", "utf-8"))
+            request.finish()
         return NOT_DONE_YET
 
     def doRender(self, request):
-        request.write(bytes('<html><body>', 'utf-8'))
-        request.write(bytes('<table><tr><th>Key</th><th>Value</th></tr>', 'utf-8'))
+        request.write(bytes("<html><body>", "utf-8"))
+        request.write(bytes("<table><tr><th>Key</th><th>Value</th></tr>", "utf-8"))
         for i in range(30000):
-            request.write(bytes(f'<tr><td>{i}</td><td>{i}</td></tr>', 'utf-8'))
-        request.write(bytes('</body></html>', 'utf-8'))
-        return b''
-    
+            try:
+                request.write(bytes(f"<tr><td>{i}</td><td>{i}</td></tr>", "utf-8"))
+            except Exception as e:
+                print('Error while writing:', e)
+                break
+        request.write(bytes("</body></html>", "utf-8"))
+        request.finish()
+
 
 site = server.Site(Simple())
 options = certificateOptionsFromFiles('key.pem', 'cert.pem')
