@@ -13,12 +13,14 @@ class Simple(resource.Resource):
     isLeaf = True
 
     def render_GET(self, request):
-        try:
-            self.doRender(request)
-        except Exception as e:
-            print('Error while rendering:', e)
-            request.write(bytes(f"<html><body>Error: {e}</body></html>", "utf-8"))
-            request.finish()
+        def _doRender():
+            try:
+                self.doRender(request)
+            except Exception as e:
+                print('Error while rendering:', e)
+                request.write(bytes(f"<html><body>Error: {e}</body></html>", "utf-8"))
+                request.finish()
+        deferToThreadPool(reactor, reactor.getThreadPool(), _doRender)
         return NOT_DONE_YET
 
     def doRender(self, request):
