@@ -19,7 +19,7 @@ class Simple(resource.Resource):
             except Exception as e:
                 print('Error while rendering:', e)
                 request.write(bytes(f"<html><body>Error: {e}</body></html>", "utf-8"))
-                if not request.finished:
+                if not request._disconnected:
                     print('Finishing request')
                     request.finish()
         deferToThreadPool(reactor, reactor.getThreadPool(), _doRender)
@@ -35,7 +35,7 @@ class Simple(resource.Resource):
                 print('Error while writing:', e)
                 break
         request.write(bytes("</body></html>", "utf-8"))
-        if not request.finished:
+        if not request._disconnected:
             print('Finishing request')
             request.finish()
 
